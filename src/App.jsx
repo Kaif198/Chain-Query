@@ -75,7 +75,7 @@ export function useApi() { return useContext(ApiContext); }
 // ============================================
 // Main App Content
 // ============================================
-function AppContent() {
+function AppContent({ onReset }) {
   const { loading, exec, preview } = useDb();
   const [theme, setTheme] = useState(() => localStorage.getItem('cq-theme') || 'dark');
   const [mode, setMode] = useState('library');
@@ -133,7 +133,7 @@ function AppContent() {
 
   return (
     <div className="h-screen flex flex-col bg-background text-on-background">
-      <TopBar mode={mode} setMode={setMode} theme={theme} toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} openSchema={() => setSchemaOpen(true)} openHistory={() => setHistoryOpen(true)} openGlossary={() => setGlossaryOpen(true)} />
+      <TopBar onReset={onReset} mode={mode} setMode={setMode} theme={theme} toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} openSchema={() => setSchemaOpen(true)} openHistory={() => setHistoryOpen(true)} openGlossary={() => setGlossaryOpen(true)} />
       
       <div className="flex flex-1 h-[calc(100vh-48px)] overflow-hidden">
         
@@ -195,13 +195,13 @@ function AppContent() {
   );
 }
 
-export default function App() {
+export default function App({ onReset }) {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('cq-api-key') || '');
   useEffect(() => { if (apiKey) localStorage.setItem('cq-api-key', apiKey); }, [apiKey]);
 
   return (
     <ApiContext.Provider value={{ apiKey, setApiKey }}>
-      <DbProvider><AppContent /></DbProvider>
+      <DbProvider><AppContent onReset={onReset} /></DbProvider>
     </ApiContext.Provider>
   );
 }

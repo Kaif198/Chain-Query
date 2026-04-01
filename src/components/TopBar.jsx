@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from './Icon';
 
-export default function TopBar({ mode, setMode, theme, toggleTheme, openSchema, openHistory, openGlossary }) {
+export default function TopBar({ onReset, mode, setMode, theme, toggleTheme, openSchema, openHistory, openGlossary }) {
   const tabs = [
     { id: 'library', label: 'Library' },
     { id: 'editor', label: 'Editor' },
@@ -12,7 +12,7 @@ export default function TopBar({ mode, setMode, theme, toggleTheme, openSchema, 
   return (
     <header className="h-12 w-full flex items-center justify-between px-4 sticky top-0 z-50 bg-surface border-b border-outline/20">
       <div className="flex items-center gap-8">
-        <span className="text-lg font-semibold tracking-tight text-on-background font-headline">ChainQuery</span>
+        <button onClick={onReset} className="text-lg font-semibold tracking-tight text-on-background font-headline hover:opacity-80 transition-opacity" title="Return to Landing Page">ChainQuery</button>
         <nav className="hidden md:flex h-12 items-center">
           {tabs.map(t => (
             <button
