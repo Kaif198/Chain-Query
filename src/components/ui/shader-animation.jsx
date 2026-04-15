@@ -26,10 +26,11 @@ export function ShaderAnimation() {
 
       precision highp float;
       uniform vec2 resolution;
+      uniform vec2 origin;
       uniform float time;
 
       void main(void) {
-        vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
+        vec2 uv = (gl_FragCoord.xy - origin) * 2.0 / min(resolution.x, resolution.y);
         float t = time*0.05;
         float lineWidth = 0.002;
 
@@ -53,7 +54,8 @@ export function ShaderAnimation() {
 
     const uniforms = {
       time: { type: "f", value: 1.0 },
-      resolution: { type: "v2", value: new THREE.Vector2() },
+      resolution: { type: "v2", value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+      origin: { type: "v2", value: new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2) }
     }
 
     const material = new THREE.ShaderMaterial({
@@ -76,18 +78,42 @@ export function ShaderAnimation() {
 
     container.appendChild(renderer.domElement)
 
-    // Handle window resize
-    const onWindowResize = () => {
-      const width = container.clientWidth
-      const height = container.clientHeight
-      renderer.setSize(width, height)
-      uniforms.resolution.value.x = renderer.domElement.width
-      uniforms.resolution.value.y = renderer.domElement.height
+    // Handle resize with ResizeObserver for accurate containment dimensions
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width === 0 || height === 0) continue;
+        renderer.setSize(width, height);
+        uniforms.resolution.value.x = width;
+        uniforms.resolution.value.y = height;
+      }
+    });
+
+    // Start observing the container
+    resizeObserver.observe(container);
+
+    // Initial manual resize to ensure we catch the very first frame
+    if (container.clientWidth > 0 && container.clientHeight > 0) {
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      uniforms.resolution.value.x = container.clientWidth;
+      uniforms.resolution.value.y = container.clientHeight;
     }
 
-    // Initial resize
-    onWindowResize()
-    window.addEventListener("resize", onWindowResize, false)
+    // Handle explicit window resize as a fallback
+    const onWindowResize = () => {
+      if (!container) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      if (width === 0 || height === 0) return;
+      renderer.setSize(width, height);
+      uniforms.resolution.value.x = width;
+      uniforms.resolution.value.y = height;
+    };
+    
+    window.addEventListener("resize", onWindowResize, false);
+
+    // Snap origin to the "Intelligence" word before first render
+    let firstFrame = true;
 
     // Animation loop
     const animate = () => {
@@ -95,6 +121,30 @@ export function ShaderAnimation() {
       if (document.hidden) {
         sceneRef.current.animationId = requestAnimationFrame(animate)
         return
+      }
+
+      // Track the subtitle element to center the shader there
+      const titleEl = document.getElementById('landing-title');
+      if (titleEl) {
+        const rect = titleEl.getBoundingClientRect();
+        // Center of the title element
+        const centerX = rect.right - 40;
+        // WebGL Y coordinate points up, so we invert it based on viewport
+        const centerY = window.innerHeight - (rect.top + rect.height / 2);
+
+        if (firstFrame) {
+          // Snap immediately on the first frame so animation starts from the word
+          uniforms.origin.value.x = centerX;
+          uniforms.origin.value.y = centerY;
+          firstFrame = false;
+        } else {
+          uniforms.origin.value.x += (centerX - uniforms.origin.value.x) * 0.1;
+          uniforms.origin.value.y += (centerY - uniforms.origin.value.y) * 0.1;
+        }
+      } else {
+        // Fallback to center screen
+        uniforms.origin.value.x += ((window.innerWidth / 2) - uniforms.origin.value.x) * 0.1;
+        uniforms.origin.value.y += ((window.innerHeight / 2) - uniforms.origin.value.y) * 0.1;
       }
 
       const animationId = requestAnimationFrame(animate)
@@ -122,7 +172,8 @@ export function ShaderAnimation() {
 
     // Cleanup function
     return () => {
-      window.removeEventListener("resize", onWindowResize)
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", onWindowResize);
 
       if (sceneRef.current) {
         cancelAnimationFrame(sceneRef.current.animationId)
@@ -142,7 +193,7 @@ export function ShaderAnimation() {
   return (
     <div
       ref={containerRef}
-      className="w-full h-screen"
+      className="absolute inset-0 w-full h-full"
       style={{
         background: "#000",
         overflow: "hidden",

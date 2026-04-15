@@ -12,20 +12,20 @@ const LandingPage = ({ onEnter }) => {
   };
 
   return (
-    <div className={`fixed inset-0 z-[100] bg-black overflow-hidden flex flex-col items-center justify-center transition-all duration-500 ease-in-out ${isExiting ? 'opacity-0 scale-[1.02]' : 'opacity-100'}`}>
+    <div className={`fixed inset-0 w-full h-full z-[100] bg-black overflow-hidden flex flex-col items-center justify-center transition-all duration-500 ease-in-out ${isExiting ? 'opacity-0 scale-[1.02]' : 'opacity-100'}`}>
       {/* Shader Background */}
-      <div className="absolute inset-0 z-0 animate-fade-in" style={{ animationDuration: '800ms' }}>
+      <div className="absolute inset-0 w-full h-full z-0 animate-fade-in" style={{ animationDuration: '800ms' }}>
         <ShaderAnimation />
       </div>
       
       {/* Overlay Content */}
       <div className="relative z-10 flex flex-col items-center text-center pointer-events-none px-6">
-        <h1 className="text-[48px] md:text-[72px] font-bold tracking-tighter whitespace-pre-wrap text-white font-headline animate-slide-up" style={{ animationDelay: '400ms' }}>
+        <h1 id="landing-title" className="text-[48px] md:text-[72px] font-bold tracking-tighter whitespace-pre-wrap text-white font-headline animate-slide-up" style={{ animationDelay: '400ms' }}>
           ChainQuery
         </h1>
         
         <p className="text-[16px] md:text-[20px] font-normal text-white/80 tracking-[0.02em] mt-3 animate-slide-up" style={{ animationDelay: '600ms' }}>
-          Supply Chain Intelligence Platform
+          Supply Chain <span id="landing-subtitle">Intelligence</span> Platform
         </p>
         
         <div className="w-16 h-[1px] bg-white/30 my-8 animate-scale-x" style={{ animationDelay: '800ms' }} />
